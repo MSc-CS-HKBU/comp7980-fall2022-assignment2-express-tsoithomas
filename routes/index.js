@@ -21,14 +21,66 @@ router.get('/', function(req, res, next) {
 
 /* Handle the Form */
 router.post('/api/submit', async function (req, res) {
-  console.log(req.body);
+  // console.log(req.body);
   // req.body.numTickets = parseInt(req.body.numTickets);
-    
-  // let result = await db.collection("survey").insertOne(req.body);
-  // res.status(201).json({ id: result.insertedId });   
-  res.status(201).json({ });   
+
+  req.body.experience = parseInt(req.body.experience);
+  let result = await db.collection("survey").insertOne(req.body);
+  res.status(201).json({ id: result.insertedId });
+  console.log(result.insertedId);
+  // res.status(201).json({ });   
 });
 
+
+/* Chart Language */
+router.get('/api/chart/language/:gender', async function (req, res) {
+
+  if (req.params.gender != "a" && req.params.gender != "m" && req.params.gender != "f") 
+    return res.status(404).send('Unable to find the requested resource!');
+
+  pipeline = [];
+
+  if (req.params.gender == "m" || req.params.gender == "f") {
+    pipeline = [
+      { $match: { "gender": req.params.gender } },
+      { $group: { _id: "$language", count: { $sum: 1 } } },
+      { $sort:{ _id : 1 } }
+    ];
+  }
+  else {
+    pipeline = [
+      { $group: { _id: "$language", count: { $sum: 1 } } },
+      { $sort:{ _id : 1 } }
+    ];
+  }
+
+  const results = await db.collection("survey").aggregate(pipeline).toArray();
+  console.log(results);
+  
+  return res.json(results);
+});
+
+
+/* Chart experience */
+router.get('/api/chart/experience', async function (req, res) {
+
+
+  const pipeline = [
+    { $group: { 
+      _id:  { $floor: {$divide: [ "$experience", 5 ]}}, 
+      count: { $sum: 1 } 
+      }
+    },
+    {
+      $sort:{ _id : 1 }
+    }
+  ];
+
+  const results = await db.collection("survey").aggregate(pipeline).toArray();
+  console.log(results);
+  
+  return res.json(results);
+});
 
 
 
