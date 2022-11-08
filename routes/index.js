@@ -97,7 +97,6 @@ router.get('/api/chart/familiarity', async function (req, res) {
   ];
 
   const results = await db.collection("survey").aggregate(pipeline).toArray();
-  console.log(results);
   
   return res.json(results);
 });
