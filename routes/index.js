@@ -21,14 +21,13 @@ router.get('/', function(req, res, next) {
 
 /* Handle the Form */
 router.post('/api/submit', async function (req, res) {
-  // console.log(req.body);
-  // req.body.numTickets = parseInt(req.body.numTickets);
-
   req.body.experience = parseInt(req.body.experience);
+  req.body.windows = parseInt(req.body.windows);
+  req.body.linux = parseInt(req.body.linux);
+  req.body.macos = parseInt(req.body.macos);
   let result = await db.collection("survey").insertOne(req.body);
   res.status(201).json({ id: result.insertedId });
   console.log(result.insertedId);
-  // res.status(201).json({ });   
 });
 
 
@@ -64,7 +63,6 @@ router.get('/api/chart/language/:gender', async function (req, res) {
 /* Chart experience */
 router.get('/api/chart/experience', async function (req, res) {
 
-
   const pipeline = [
     { $group: { 
       _id:  { $floor: {$divide: [ "$experience", 5 ]}}, 
@@ -82,6 +80,27 @@ router.get('/api/chart/experience', async function (req, res) {
   return res.json(results);
 });
 
+
+
+/* Chart familiarity */
+router.get('/api/chart/familiarity', async function (req, res) {
+
+  const pipeline = [
+    { 
+      $group: { 
+        _id: null,
+        Windows: { $avg: "$windows" } ,
+        Linux: { $avg: "$linux" },
+        MacOS: { $avg: "$macos" }
+      }
+    }
+  ];
+
+  const results = await db.collection("survey").aggregate(pipeline).toArray();
+  console.log(results);
+  
+  return res.json(results);
+});
 
 
 module.exports = router;
